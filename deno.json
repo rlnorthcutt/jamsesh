@@ -1,0 +1,18 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-write --allow-env main.ts",
+    "test": "deno test --allow-net --allow-read --allow-write --allow-env tests/",
+    "setup": "deno run --allow-net --allow-write scripts/setup.ts"
+  },
+  "imports": {
+    "hono": "npm:hono@^4",
+    "hono/cookie": "npm:hono@^4/cookie",
+    "hono/deno": "npm:hono@^4/deno",
+    "hono/jsx": "npm:hono@^4/jsx",
+    "hono/jsx/jsx-runtime": "npm:hono@^4/jsx/jsx-runtime"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx"
+  }
+}
