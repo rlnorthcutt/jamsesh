@@ -98,7 +98,9 @@ export function pageRoutes(db: Db) {
             </div>
             {youtubeId && (
               <div x-data={`youtubeAudio(${JSON.stringify(youtubeId)})`} style="display:contents">
-                <div x-ref="ytHost" aria-hidden="true" style="position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none"></div>
+                <div aria-hidden="true" style="position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none">
+                  <div x-ref="ytHost"></div>
+                </div>
                 <button
                   type="button"
                   class="yt-toggle"
@@ -604,12 +606,14 @@ export function pageRoutes(db: Db) {
     const tempo = form.get("tempo") ? Number(form.get("tempo")) : undefined;
     const title = (form.get("title") as string | null)?.trim();
     const artist = (form.get("artist") as string | null)?.trim();
+    const youtubeUrlField = form.get("youtube_url") as string | null;
     db.songs.update(id, {
       ...(title && { title }),
       ...(artist && { artist }),
       songKey: (form.get("song_key") as string) || undefined,
       tempo,
-      youtubeUrl: (form.get("youtube_url") as string)?.trim() || undefined,
+      // Distinguish "field submitted empty" (clear it) from "field absent" (leave unchanged).
+      youtubeUrl: youtubeUrlField !== null ? youtubeUrlField.trim() : undefined,
     });
     return c.redirect(`/songs/${id}`);
   });

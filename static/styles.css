@@ -370,7 +370,7 @@ button { font-family: var(--font-body); cursor: pointer; }
   font-size: 13.5px;
   line-height: 2;
   white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 /* ── Controls row ────────────────────────────────────────────────────────── */
