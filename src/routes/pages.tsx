@@ -69,11 +69,11 @@ export function pageRoutes(db: Db) {
         footer={activeSheet && (
           <div class="autoscroll-bar" x-data="autoScroll()">
             <div class="as-speed-group">
-              <button type="button" class="as-btn" x-on:click="dec" aria-label="Slower">−</button>
+              <button type="button" class="as-btn" x-on:click="dec()" aria-label="Slower">−</button>
               <div class="as-speed" x-text="speed.toFixed(1) + 'x'">0.6x</div>
-              <button type="button" class="as-btn" x-on:click="inc" aria-label="Faster">+</button>
+              <button type="button" class="as-btn" x-on:click="inc()" aria-label="Faster">+</button>
             </div>
-            <button type="button" class="as-play" x-on:click="toggle" x-bind:aria-label="playing ? 'Stop auto-scroll' : 'Start auto-scroll'">
+            <button type="button" class="as-play" x-on:click="toggle()" x-bind:aria-label="playing ? 'Stop auto-scroll' : 'Start auto-scroll'">
               <span x-show="!playing">▶</span>
               <span x-show="playing" style="display:none">❚❚</span>
             </button>
@@ -104,7 +104,7 @@ export function pageRoutes(db: Db) {
                 <button
                   type="button"
                   class="yt-toggle"
-                  x-on:click="toggle"
+                  x-on:click="toggle()"
                   x-bind:aria-label="playing ? 'Pause song audio' : 'Play song audio'"
                   title="Play/pause song audio"
                 >

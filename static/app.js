@@ -21,13 +21,13 @@ function autoScroll() {
         if (this._lastTs != null) {
           const dt = (ts - this._lastTs) / 1000;
           window.scrollBy(0, this._basePxPerSec * this.speed * dt);
+          const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 1;
+          if (atBottom) {
+            this.stop();
+            return;
+          }
         }
         this._lastTs = ts;
-        const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-        if (atBottom) {
-          this.stop();
-          return;
-        }
         this._rafId = requestAnimationFrame(step);
       };
       this._rafId = requestAnimationFrame(step);
