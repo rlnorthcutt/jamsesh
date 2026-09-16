@@ -1,12 +1,13 @@
 CREATE TABLE IF NOT EXISTS songs (
-  id          TEXT PRIMARY KEY,
-  title       TEXT NOT NULL,
-  artist      TEXT NOT NULL,
-  song_key    TEXT,
-  tempo       INTEGER,
-  tags        TEXT NOT NULL DEFAULT '[]',
-  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  id           TEXT PRIMARY KEY,
+  title        TEXT NOT NULL,
+  artist       TEXT NOT NULL,
+  song_key     TEXT,
+  tempo        INTEGER,
+  tags         TEXT NOT NULL DEFAULT '[]',
+  youtube_url  TEXT,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS sheets (

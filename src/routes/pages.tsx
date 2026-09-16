@@ -8,6 +8,7 @@ import { StringsDivider } from "../components/StringsDivider.tsx";
 import { SessionBanner } from "../components/SessionBanner.tsx";
 import type { Db, Song, Sheet } from "../db/client.ts";
 import { SHEET_TYPE_LABELS, type SheetType, type Difficulty } from "../types/index.ts";
+import { extractYouTubeId } from "../lib/youtube.ts";
 
 function mutationRedirect(c: { req: { header: (k: string) => string | undefined }, redirect: (url: string) => Response }, url: string): Response {
   return c.redirect(url);
@@ -56,9 +57,29 @@ export function pageRoutes(db: Db) {
     const activeSheetId = c.req.query("sheet") ?? sheets[0]?.id;
     const activeSheet = sheets.find((s) => s.id === activeSheetId) ?? sheets[0];
     const authed = await isAuthenticated(c);
+    const youtubeId = song.youtubeUrl ? extractYouTubeId(song.youtubeUrl) : null;
 
     return c.html(page(
-      <Layout title={song.title} activeNav="songs" sessionCode={sessionCode}>
+      <Layout
+        title={song.title}
+        activeNav="songs"
+        sessionCode={sessionCode}
+        hideNav
+        alpine={Boolean(activeSheet) || Boolean(youtubeId)}
+        footer={activeSheet && (
+          <div class="autoscroll-bar" x-data="autoScroll()">
+            <div class="as-speed-group">
+              <button type="button" class="as-btn" x-on:click="dec" aria-label="Slower">−</button>
+              <div class="as-speed" x-text="speed.toFixed(1) + 'x'">0.6x</div>
+              <button type="button" class="as-btn" x-on:click="inc" aria-label="Faster">+</button>
+            </div>
+            <button type="button" class="as-play" x-on:click="toggle" x-bind:aria-label="playing ? 'Stop auto-scroll' : 'Start auto-scroll'">
+              <span x-show="!playing">▶</span>
+              <span x-show="playing" style="display:none">❚❚</span>
+            </button>
+          </div>
+        )}
+      >
         <div class="song-detail-header">
           <div class="detail-header-top">
             <a href="/" class="back-row" style="margin-bottom:0">← Songs</a>
@@ -70,9 +91,26 @@ export function pageRoutes(db: Db) {
               </a>
             )}
           </div>
-          <div class="song-title-block">
-            <h2>{song.title}</h2>
-            <div class="artist">{song.artist}</div>
+          <div class="title-row">
+            <div class="song-title-block">
+              <h2>{song.title}</h2>
+              <div class="artist">{song.artist}</div>
+            </div>
+            {youtubeId && (
+              <div x-data={`youtubeAudio(${JSON.stringify(youtubeId)})`} style="display:contents">
+                <div x-ref="ytHost" aria-hidden="true" style="position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none"></div>
+                <button
+                  type="button"
+                  class="yt-toggle"
+                  x-on:click="toggle"
+                  x-bind:aria-label="playing ? 'Pause song audio' : 'Play song audio'"
+                  title="Play/pause song audio"
+                >
+                  <span x-show="!playing">▶</span>
+                  <span x-show="playing" style="display:none">❚❚</span>
+                </button>
+              </div>
+            )}
           </div>
           <div class="meta-row">
             {song.songKey && <span>Key <b>{song.songKey}</b></span>}
@@ -116,6 +154,8 @@ export function pageRoutes(db: Db) {
               )}
             </div>
           )}
+        {youtubeId && <script src="https://www.youtube.com/iframe_api"></script>}
+        {(activeSheet || youtubeId) && <script src="/static/app.js" defer></script>}
       </Layout>
     ));
   });
@@ -284,6 +324,10 @@ export function pageRoutes(db: Db) {
               <label for="tempo">Tempo / BPM (optional)</label>
               <input type="number" id="tempo" name="tempo" placeholder="e.g. 120" min={40} max={300} />
             </div>
+            <div class="field">
+              <label for="youtube_url">YouTube link (optional)</label>
+              <input type="url" id="youtube_url" name="youtube_url" placeholder="https://youtube.com/watch?v=…" />
+            </div>
             <button type="submit" class="primary-btn">Save song &amp; add first sheet</button>
           </form>
         </div>
@@ -384,6 +428,10 @@ export function pageRoutes(db: Db) {
             <div class="field">
               <label for="tempo">Tempo / BPM (optional)</label>
               <input type="number" id="tempo" name="tempo" value={song.tempo ?? ""} />
+            </div>
+            <div class="field">
+              <label for="youtube_url">YouTube link (optional)</label>
+              <input type="url" id="youtube_url" name="youtube_url" value={song.youtubeUrl ?? ""} placeholder="https://youtube.com/watch?v=…" />
             </div>
             <button type="submit" class="primary-btn">Save changes</button>
           </form>
@@ -540,7 +588,13 @@ export function pageRoutes(db: Db) {
     const artist = (form.get("artist") as string)?.trim();
     if (!title || !artist) return c.redirect("/add-song");
     const tempo = form.get("tempo") ? Number(form.get("tempo")) : undefined;
-    const song = db.songs.create({ title, artist, songKey: form.get("song_key") as string || undefined, tempo });
+    const song = db.songs.create({
+      title,
+      artist,
+      songKey: form.get("song_key") as string || undefined,
+      tempo,
+      youtubeUrl: (form.get("youtube_url") as string)?.trim() || undefined,
+    });
     return c.redirect(`/songs/${song.id}/add-sheet`);
   });
 
@@ -555,6 +609,7 @@ export function pageRoutes(db: Db) {
       ...(artist && { artist }),
       songKey: (form.get("song_key") as string) || undefined,
       tempo,
+      youtubeUrl: (form.get("youtube_url") as string)?.trim() || undefined,
     });
     return c.redirect(`/songs/${id}`);
   });

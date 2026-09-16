@@ -34,6 +34,12 @@ export function initDb(dbPath?: string): DatabaseSync {
   db.exec("PRAGMA foreign_keys=ON");
   const schemaPath = new URL("./schema.sql", import.meta.url).pathname;
   db.exec(Deno.readTextFileSync(schemaPath));
+
+  const songCols = db.prepare("PRAGMA table_info(songs)").all() as { name: string }[];
+  if (!songCols.some((c) => c.name === "youtube_url")) {
+    db.exec("ALTER TABLE songs ADD COLUMN youtube_url TEXT");
+  }
+
   return db;
 }
 
@@ -68,15 +74,15 @@ export function createDb(dbPath?: string) {
       return parseSong(row);
     },
 
-    create(data: { title: string; artist: string; songKey?: string; tempo?: number; tags?: string[] }): Song {
+    create(data: { title: string; artist: string; songKey?: string; tempo?: number; tags?: string[]; youtubeUrl?: string }): Song {
       const id = crypto.randomUUID();
       db.prepare(
-        "INSERT INTO songs (id, title, artist, song_key, tempo, tags) VALUES (?, ?, ?, ?, ?, ?)"
-      ).run(id, data.title, data.artist, data.songKey ?? null, data.tempo ?? null, JSON.stringify(data.tags ?? []));
+        "INSERT INTO songs (id, title, artist, song_key, tempo, tags, youtube_url) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      ).run(id, data.title, data.artist, data.songKey ?? null, data.tempo ?? null, JSON.stringify(data.tags ?? []), data.youtubeUrl ?? null);
       return songs.get(id)!;
     },
 
-    update(id: string, data: Partial<Pick<Song, "title" | "artist" | "songKey" | "tempo" | "tags">>): Song | undefined {
+    update(id: string, data: Partial<Pick<Song, "title" | "artist" | "songKey" | "tempo" | "tags" | "youtubeUrl">>): Song | undefined {
       const sets: string[] = [];
       const vals: SQLVal[] = [];
       if (data.title !== undefined) { sets.push("title = ?"); vals.push(data.title); }
@@ -84,6 +90,7 @@ export function createDb(dbPath?: string) {
       if (data.songKey !== undefined) { sets.push("song_key = ?"); vals.push(data.songKey); }
       if (data.tempo !== undefined) { sets.push("tempo = ?"); vals.push(data.tempo); }
       if (data.tags !== undefined) { sets.push("tags = ?"); vals.push(JSON.stringify(data.tags)); }
+      if (data.youtubeUrl !== undefined) { sets.push("youtube_url = ?"); vals.push(data.youtubeUrl); }
       if (!sets.length) return songs.get(id);
       sets.push("updated_at = datetime('now')");
       vals.push(id);

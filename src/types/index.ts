@@ -17,6 +17,7 @@ export interface Song {
   songKey?: string;
   tempo?: number;
   tags: string[];
+  youtubeUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
