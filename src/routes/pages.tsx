@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
 import { requireAuth, isAuthenticated } from "../lib/auth.ts";
-import { Layout, page } from "../lib/layout.tsx";
+import { Layout, page, ASSET_VERSION } from "../lib/layout.tsx";
 import { SongRow } from "../components/SongRow.tsx";
 import { PlaylistCard } from "../components/PlaylistCard.tsx";
 import { StringsDivider } from "../components/StringsDivider.tsx";
@@ -157,7 +157,7 @@ export function pageRoutes(db: Db) {
             </div>
           )}
         {youtubeId && <script src="https://www.youtube.com/iframe_api"></script>}
-        {(activeSheet || youtubeId) && <script src="/static/app.js" defer></script>}
+        {(activeSheet || youtubeId) && <script src={`/static/app.js?v=${ASSET_VERSION}`} defer></script>}
       </Layout>
     ));
   });

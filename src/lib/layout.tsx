@@ -1,5 +1,10 @@
 import type { Child } from "hono/jsx";
 
+// Cache-busts static assets on every process restart (i.e. every deploy) so a
+// CDN or browser holding a stale cached copy of app.js/styles.css doesn't
+// silently keep serving old code after we ship a fix.
+export const ASSET_VERSION = String(Date.now());
+
 interface LayoutProps {
   title?: string;
   activeNav?: "songs" | "playlists" | "session";
@@ -26,13 +31,17 @@ export function Layout({ title, activeNav, sessionCode, hideNav, footer, alpine,
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <title>{title ? `${title} — jamsesh` : "jamsesh"}</title>
+        <link
+          rel="icon"
+          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23E85D2C'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='19' font-weight='700' fill='white' text-anchor='middle'%3E♪%3C/text%3E%3C/svg%3E"
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap"
           rel="stylesheet"
         />
-        <link rel="stylesheet" href="/static/styles.css" />
-        <script src="/static/htmx.min.js"></script>
+        <link rel="stylesheet" href={`/static/styles.css?v=${ASSET_VERSION}`} />
+        <script src={`/static/htmx.min.js?v=${ASSET_VERSION}`}></script>
       </head>
       <body>
         <div class="app-shell">
@@ -65,7 +74,7 @@ export function Layout({ title, activeNav, sessionCode, hideNav, footer, alpine,
             </nav>
           )}
         </div>
-        {alpine && <script src="/static/alpine.min.js" defer></script>}
+        {alpine && <script src={`/static/alpine.min.js?v=${ASSET_VERSION}`} defer></script>}
       </body>
     </html>
   );

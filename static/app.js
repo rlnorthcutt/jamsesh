@@ -59,10 +59,23 @@ function youtubeAudio(videoId) {
       const create = () => {
         this.player = new YT.Player(host, {
           videoId,
+          host: "https://www.youtube-nocookie.com",
           height: "1",
           width: "1",
           playerVars: { playsinline: 1, controls: 0 },
           events: {
+            onReady: (e) => {
+              // Silences a benign "Unrecognized feature: 'web-share'" console
+              // warning some browsers log for YouTube's default iframe `allow` list.
+              const frame = e.target.getIframe?.();
+              const allow = frame?.getAttribute("allow");
+              if (allow) {
+                frame.setAttribute(
+                  "allow",
+                  allow.split(";").map((s) => s.trim()).filter((f) => f && !f.startsWith("web-share")).join("; "),
+                );
+              }
+            },
             onStateChange: (e) => {
               this.playing = e.data === YT.PlayerState.PLAYING;
             },
